@@ -1,0 +1,33 @@
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+
+  - pytorch
+  - pytorch-cuda
+  - torchvision
+  - transformers
+  - datasets
+
+  - pandas
+
+  - rich
+  - typer
+  - loguru
+
+  - black
+  - isort
+  - flake8
+  - flake8-bugbear
+  - mypy
+  - ipywidgets
+  - pre-commit
+
+  pip:
+    - timm
+    - pytorch_lightning>=1.8
+    - git+https://github.com/hpcaitech/ColossalAI; platform_system=='Linux'
