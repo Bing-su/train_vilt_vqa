@@ -139,7 +139,7 @@ class ViltVQADataModule(pl.LightningDataModule):
         )
 
     def load_label2id(self) -> dict[str, int]:
-        root = Path(__file__).resolve().parent
+        root = Path(__file__).resolve().parent.parent
         file = root / "label2id.json"
         with file.open("rb") as f:
             label2id = json.load(f)
