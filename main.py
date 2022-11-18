@@ -9,7 +9,9 @@ from pytorch_lightning.callbacks import (
     RichProgressBar,
 )
 from pytorch_lightning.loggers import WandbLogger
-from transformers import ViltProcessor
+from pytorch_lightning.strategies import DDPFullyShardedNativeStrategy
+from torch.distributed.fsdp.fully_sharded_data_parallel import CPUOffload
+from transformers import ViltForQuestionAnswering, ViltProcessor
 from typer import Option, Typer
 
 from app.dataset import ViltVQADataModule
@@ -20,6 +22,7 @@ cmd = Typer(pretty_exceptions_show_locals=False)
 
 @cmd.command(no_args_is_help=True)
 def train(
+    optimizer: str = Option("adamw", help="Optimizer to use"),
     learning_rate: float = Option(1e-4, help="learning rate", rich_help_panel="model"),
     weigth_decay: float = Option(1e-4, help="weight decay", rich_help_panel="model"),
     batch_size: int = Option(32, min=1, help="batch size", rich_help_panel="data"),
@@ -58,8 +61,9 @@ def train(
     ),
     seed: Optional[int] = Option(None, help="seed", rich_help_panel="train"),
 ):
-    logger.debug("loading vilt processor")
+    logger.debug("loading vilt model, processor")
     model_name = "Bingsu/temp_vilt_vqa"
+    model = ViltForQuestionAnswering.from_pretrained(model_name)
     processor = ViltProcessor.from_pretrained(model_name)
 
     logger.debug("loading datamodule")
@@ -69,8 +73,9 @@ def train(
 
     logger.debug("loading lightning module")
     module = ViltVQAModule(
-        model_name=model_name,
+        model=model,
         processor=processor,
+        optimizer=optimizer,
         learning_rate=learning_rate,
         weight_decay=weigth_decay,
     )
@@ -112,7 +117,9 @@ def train(
         callbacks=callbacks,
         auto_scale_batch_size=auto_scale_batch_size,
         log_every_n_steps=log_every_n_steps,
-        strategy="colossalai"
+        strategy=DDPFullyShardedNativeStrategy(
+            cpu_offload=CPUOffload(offload_params=True)
+        ),
     )
 
     if auto_scale_batch_size:

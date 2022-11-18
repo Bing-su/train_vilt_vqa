@@ -1,7 +1,7 @@
 import pytorch_lightning as pl
 import torch
-from colossalai.nn.optimizer import HybridAdam
 from timm.loss import AsymmetricLossSingleLabel
+from timm.optim import create_optimizer_v2
 from torchmetrics import Accuracy, F1Score, MetricCollection
 from transformers import ViltForQuestionAnswering, ViltProcessor
 
@@ -11,16 +11,18 @@ NUM_CLASSES = 4507
 class ViltVQAModule(pl.LightningModule):
     def __init__(
         self,
-        model_name: str,
+        model: ViltForQuestionAnswering,
         processor: ViltProcessor,
+        optimizer: str = "adamw",
         learning_rate: float = 5e-4,
         weight_decay: float = 1e-4,
     ):
         super().__init__()
         self.save_hyperparameters()
 
-        self.model_name = model_name
+        self.model = model
         self.processor = processor
+        self.optimizer = optimizer
 
         self.learning_rate = learning_rate
         self.weight_decay = weight_decay
@@ -32,9 +34,6 @@ class ViltVQAModule(pl.LightningModule):
         metrics = MetricCollection([accuracy, f1])
         self.train_metrics = metrics.clone(prefix="train/")
         self.val_metrics = metrics.clone(prefix="val/")
-
-    def configure_sharded_model(self) -> None:
-        self.model = ViltForQuestionAnswering.from_pretrained(self.model_name)
 
     def training_step(self, batch, batch_idx):
         output = self.model(**batch)
@@ -75,8 +74,9 @@ class ViltVQAModule(pl.LightningModule):
             },
         ]
 
-        optimizer = HybridAdam(
+        optimizer = create_optimizer_v2(
             optimizer_grouped_parameters,
+            opt=self.optimizer,
             lr=self.learning_rate,
             weight_decay=self.weight_decay,
         )
