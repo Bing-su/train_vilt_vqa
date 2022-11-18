@@ -3,17 +3,19 @@ from pathlib import Path
 from typing import Optional
 
 import numpy as np
-import torch
 import pytorch_lightning as pl
-from datasets import load_dataset
+import torch
 from datasets import Dataset as HFDataset
+from datasets import load_dataset
 from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms as T
 from transformers import BatchEncoding, DefaultDataCollator, ViltProcessor
 
 
 class ViltVQADataset(Dataset):
-    def __init__(self, dataset: HFDataset, processor: ViltProcessor, label2id: dict[str, int]):
+    def __init__(
+        self, dataset: HFDataset, processor: ViltProcessor, label2id: dict[str, int]
+    ):
         self.dataset = dataset
         self.processor = processor
         self.tokenizer = processor.tokenizer
@@ -78,7 +80,9 @@ class ViltVQADataset(Dataset):
             text += "?"
         return text
 
-    def filter_questions(self, questions: dict[str, list[str | int]]) -> dict[str, list[str | int]]:
+    def filter_questions(
+        self, questions: dict[str, list[str | int]]
+    ) -> dict[str, list[str | int]]:
         length = len(questions["question"])
         new = {k: [] for k in questions.keys()}
         for i in range(length):
@@ -86,6 +90,7 @@ class ViltVQADataset(Dataset):
                 for k, v in questions.items():
                     new[k].append(v[i])
         return new
+
 
 class ViltVQADataModule(pl.LightningDataModule):
     def __init__(
@@ -98,11 +103,17 @@ class ViltVQADataModule(pl.LightningDataModule):
         self.collator = DefaultDataCollator()
 
     def prepare_data(self) -> None:
-        load_dataset("Bingsu/living_and_living_environment_based_vqa", split="train+validation", use_auth_token=True)
+        load_dataset(
+            "Bingsu/living_and_living_environment_based_vqa",
+            split="train+validation",
+            use_auth_token=True,
+        )
 
     def setup(self, stage: Optional[str] = None) -> None:
         dataset = load_dataset(
-            "Bingsu/living_and_living_environment_based_vqa", split="train+validation", use_auth_token=True
+            "Bingsu/living_and_living_environment_based_vqa",
+            split="train+validation",
+            use_auth_token=True,
         )
         label2id = self.load_label2id()
         train, valid = dataset.train_test_split(test_size=0.03, seed=42)

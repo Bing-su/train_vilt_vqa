@@ -1,13 +1,12 @@
 import pytorch_lightning as pl
 import torch
-from loguru import logger
-from transformers import ViltForQuestionAnswering, ViltProcessor
 from colossalai.nn.optimizer import HybridAdam
 from timm.loss import AsymmetricLossSingleLabel
 from torchmetrics import Accuracy, F1Score, MetricCollection
-
+from transformers import ViltForQuestionAnswering, ViltProcessor
 
 NUM_CLASSES = 4507
+
 
 class ViltVQAModule(pl.LightningModule):
     def __init__(
@@ -94,4 +93,3 @@ class ViltVQAModule(pl.LightningModule):
     def save(self, save_path: str):
         self.model.save_pretrained(save_path)
         self.processor.save_pretrained(save_path)
-
