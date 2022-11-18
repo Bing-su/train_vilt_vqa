@@ -116,9 +116,9 @@ class ViltVQADataModule(pl.LightningDataModule):
             use_auth_token=True,
         )
         label2id = self.load_label2id()
-        train, valid = dataset.train_test_split(test_size=0.03, seed=42)
-        self.train_dataset = ViltVQADataset(train, self.processor, label2id)
-        self.valid_dataset = ViltVQADataset(valid, self.processor, label2id)
+        ds = dataset.train_test_split(test_size=0.03, seed=42)
+        self.train_dataset = ViltVQADataset(ds["train"], self.processor, label2id)
+        self.valid_dataset = ViltVQADataset(ds["test"], self.processor, label2id)
 
     def train_dataloader(self):
         return DataLoader(
