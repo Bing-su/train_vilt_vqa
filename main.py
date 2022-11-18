@@ -20,7 +20,7 @@ cmd = Typer(pretty_exceptions_show_locals=False)
 
 @cmd.command(no_args_is_help=True)
 def train(
-    learning_rate: float = Option(5e-4, help="learning rate", rich_help_panel="model"),
+    learning_rate: float = Option(1e-4, help="learning rate", rich_help_panel="model"),
     weigth_decay: float = Option(1e-4, help="weight decay", rich_help_panel="model"),
     batch_size: int = Option(32, min=1, help="batch size", rich_help_panel="data"),
     num_workers: int = Option(
