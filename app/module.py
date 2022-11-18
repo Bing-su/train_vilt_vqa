@@ -37,26 +37,24 @@ class ViltVQAModule(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         output = self.model(**batch)
-        logits = output.logits
-        label_oh = torch.nn.functional.one_hot(batch["labels"], num_classes=NUM_CLASSES)
-        loss = self.loss(logits, label_oh)
+        loss = output.loss
 
-        metric = self.train_metrics(logits, batch["labels"])
+        label_argmax = torch.argmax(batch["labels"], dim=-1)
+        metric = self.train_metrics(output.logits, label_argmax)
         metric["train/loss"] = loss
 
-        self.log_dict(metric, on_step=True, on_epoch=True)
+        self.log_dict(metric, on_step=True, on_epoch=True, sync_dist=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
         output = self.model(**batch)
-        logits = output.logits
-        label_oh = torch.nn.functional.one_hot(batch["labels"], num_classes=NUM_CLASSES)
-        loss = self.loss(logits, label_oh)
+        loss = output.loss
 
-        metric = self.val_metrics(logits, batch["labels"])
+        label_argmax = torch.argmax(batch["labels"], dim=-1)
+        metric = self.val_metrics(output.logits, label_argmax)
         metric["val/loss"] = loss
 
-        self.log_dict(metric, on_epoch=True)
+        self.log_dict(metric, on_step=True, on_epoch=True, sync_dist=True)
         return loss
 
     def configure_optimizers(self):

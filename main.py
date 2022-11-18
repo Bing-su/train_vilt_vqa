@@ -109,7 +109,7 @@ def train(
         fast_dev_run=fast_dev_run,
         enable_progress_bar=True,
         accelerator="gpu",
-        precision=16,
+        # precision=16,
         accumulate_grad_batches=accumulate_grad_batches,
         gradient_clip_val=gradient_clip_val,
         max_epochs=max_epochs,
