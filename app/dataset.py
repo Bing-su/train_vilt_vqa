@@ -64,8 +64,8 @@ class ViltVQADataset(Dataset):
         answer = filter_questions["answer"][q_idx]
         answer_id = self.label2id[answer]
         answer_id_tensor = torch.tensor(answer_id, dtype=torch.long)
-        labels = torch.nn.functional.one_hot(answer_id_tensor, num_classes=len(self.label2id))
-        labels = labels.float()
+        # labels = torch.nn.functional.one_hot(answer_id_tensor, num_classes=len(self.label2id))
+        # labels = labels.float()
 
         inputs = self.tokenizer(
             question,
@@ -73,7 +73,8 @@ class ViltVQADataset(Dataset):
             truncation=True,
         )
         inputs["pixel_values"] = pixel_values
-        inputs["labels"] = labels
+        # inputs["labels"] = labels
+        inputs["labels"] = answer_id_tensor
         return inputs
 
     @staticmethod

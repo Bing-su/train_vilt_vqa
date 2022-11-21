@@ -27,7 +27,8 @@ class ViltVQAModule(pl.LightningModule):
         self.learning_rate = learning_rate
         self.weight_decay = weight_decay
 
-        self.loss = AsymmetricLossSingleLabel()
+        # self.loss = AsymmetricLossSingleLabel()
+        self.loss = torch.nn.CrossEntropyLoss(label_smoothing=0.1)
 
         accuracy = Accuracy(num_classes=NUM_CLASSES, task="multiclass", top_k=1)
         f1 = F1Score(num_classes=NUM_CLASSES, average="macro")
@@ -36,22 +37,24 @@ class ViltVQAModule(pl.LightningModule):
         self.val_metrics = metrics.clone(prefix="val/")
 
     def training_step(self, batch, batch_idx):
+        labels = batch.pop("labels")
         output = self.model(**batch)
-        loss = output.loss
+        loss = self.loss(output.logits, labels)
 
-        label_argmax = torch.argmax(batch["labels"], dim=-1)
-        metric = self.train_metrics(output.logits, label_argmax)
+        # label_argmax = torch.argmax(labels, dim=-1)
+        metric = self.train_metrics(output.logits, labels)
         metric["train/loss"] = loss
 
         self.log_dict(metric, on_step=True, on_epoch=True, sync_dist=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
+        labels = batch.pop("labels")
         output = self.model(**batch)
-        loss = output.loss
+        loss = self.loss(output.logits, labels)
 
-        label_argmax = torch.argmax(batch["labels"], dim=-1)
-        metric = self.val_metrics(output.logits, label_argmax)
+        # label_argmax = torch.argmax(labels, dim=-1)
+        metric = self.train_metrics(output.logits, labels)
         metric["val/loss"] = loss
 
         self.log_dict(metric, on_step=True, on_epoch=True, sync_dist=True)

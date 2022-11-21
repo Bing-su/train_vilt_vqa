@@ -9,8 +9,6 @@ from pytorch_lightning.callbacks import (
     RichProgressBar,
 )
 from pytorch_lightning.loggers import WandbLogger
-from pytorch_lightning.strategies import DDPFullyShardedNativeStrategy
-from torch.distributed.fsdp.fully_sharded_data_parallel import CPUOffload
 from transformers import ViltForQuestionAnswering, ViltProcessor
 from typer import Option, Typer
 
@@ -109,7 +107,7 @@ def train(
         fast_dev_run=fast_dev_run,
         enable_progress_bar=True,
         accelerator="gpu",
-        # precision=16,
+        precision=16,
         accumulate_grad_batches=accumulate_grad_batches,
         gradient_clip_val=gradient_clip_val,
         max_epochs=max_epochs,
@@ -117,9 +115,6 @@ def train(
         callbacks=callbacks,
         auto_scale_batch_size=auto_scale_batch_size,
         log_every_n_steps=log_every_n_steps,
-        strategy=DDPFullyShardedNativeStrategy(
-            cpu_offload=CPUOffload(offload_params=True)
-        ),
     )
 
     if auto_scale_batch_size:
