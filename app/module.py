@@ -54,10 +54,10 @@ class ViltVQAModule(pl.LightningModule):
         loss = self.loss(output.logits, labels)
 
         # label_argmax = torch.argmax(labels, dim=-1)
-        metric = self.train_metrics(output.logits, labels)
+        metric = self.val_metrics(output.logits, labels)
         metric["val/loss"] = loss
 
-        self.log_dict(metric, on_step=True, on_epoch=True, sync_dist=True)
+        self.log_dict(metric, on_epoch=True, sync_dist=True)
         return loss
 
     def configure_optimizers(self):
