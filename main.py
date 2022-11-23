@@ -7,6 +7,7 @@ from pytorch_lightning.callbacks import (
     LearningRateMonitor,
     ModelCheckpoint,
     RichProgressBar,
+    StochasticWeightAveraging,
 )
 from pytorch_lightning.loggers import WandbLogger
 from transformers import ViltForQuestionAnswering, ViltProcessor
@@ -79,14 +80,18 @@ def train(
     )
 
     checkpoints = ModelCheckpoint(
-        monitor="train/loss_epoch",
+        monitor="val/F1Score",
         save_last=True,
         save_top_k=3,
-        mode="min",
-        every_n_train_steps=10000,
+        mode="max",
     )
 
-    callbacks = [checkpoints, RichProgressBar(), LearningRateMonitor("step")]
+    callbacks = [
+        checkpoints,
+        RichProgressBar(),
+        LearningRateMonitor("step"),
+        StochasticWeightAveraging(1e-4, swa_epoch_start=2, annealing_epochs=2),
+    ]
 
     if seed is not None:
         pl.seed_everything(seed)
