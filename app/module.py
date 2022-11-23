@@ -6,7 +6,7 @@ from transformers import ViltForQuestionAnswering, ViltProcessor
 
 from .loss import AsymmetricLossSingleLabel
 
-NUM_CLASSES = 4507
+NUM_CLASSES = 4504
 
 
 class ViltVQAModule(pl.LightningModule):
