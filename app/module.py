@@ -1,9 +1,10 @@
 import pytorch_lightning as pl
 import torch
-from timm.loss import AsymmetricLossSingleLabel
 from timm.optim import create_optimizer_v2
 from torchmetrics import Accuracy, F1Score, MetricCollection
 from transformers import ViltForQuestionAnswering, ViltProcessor
+
+from .loss import AsymmetricLossSingleLabel
 
 NUM_CLASSES = 4507
 
@@ -14,7 +15,7 @@ class ViltVQAModule(pl.LightningModule):
         model: ViltForQuestionAnswering,
         processor: ViltProcessor,
         optimizer: str = "adamw",
-        learning_rate: float = 5e-4,
+        learning_rate: float = 5e-5,
         weight_decay: float = 1e-4,
     ):
         super().__init__()
@@ -27,8 +28,8 @@ class ViltVQAModule(pl.LightningModule):
         self.learning_rate = learning_rate
         self.weight_decay = weight_decay
 
-        # self.loss = AsymmetricLossSingleLabel()
-        self.loss = torch.nn.CrossEntropyLoss(label_smoothing=0.1)
+        self.loss = AsymmetricLossSingleLabel()
+        # self.loss = torch.nn.CrossEntropyLoss(label_smoothing=0.1)
 
         accuracy = Accuracy(num_classes=NUM_CLASSES, task="multiclass", top_k=1)
         f1 = F1Score(num_classes=NUM_CLASSES, average="macro")
@@ -82,14 +83,16 @@ class ViltVQAModule(pl.LightningModule):
             weight_decay=self.weight_decay,
         )
 
-        scheduler = torch.optim.lr_scheduler.OneCycleLR(
-            optimizer,
-            self.learning_rate,
-            total_steps=self.trainer.estimated_stepping_batches,
-        )
+        return optimizer
 
-        scheduler_config = {"scheduler": scheduler, "interval": "step"}
-        return [optimizer], [scheduler_config]
+        # scheduler = torch.optim.lr_scheduler.OneCycleLR(
+        #     optimizer,
+        #     self.learning_rate,
+        #     total_steps=self.trainer.estimated_stepping_batches,
+        # )
+
+        # scheduler_config = {"scheduler": scheduler, "interval": "step"}
+        # return [optimizer], [scheduler_config]
 
     def save(self, save_path: str):
         self.model.save_pretrained(save_path)
