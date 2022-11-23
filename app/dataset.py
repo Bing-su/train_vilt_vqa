@@ -62,6 +62,9 @@ class ViltVQADataset(Dataset):
         question = self.add_question_mark(question)
 
         answer = filter_questions["answer"][q_idx]
+        answer = answer.strip()
+        if answer == "네":
+            answer = "예"
         answer_id = self.label2id[answer]
         answer_id_tensor = torch.tensor(answer_id, dtype=torch.long)
         # labels = torch.nn.functional.one_hot(answer_id_tensor, num_classes=len(self.label2id))
